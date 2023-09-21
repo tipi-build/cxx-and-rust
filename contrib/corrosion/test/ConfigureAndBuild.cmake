@@ -18,9 +18,9 @@ set(oneValueArgs
     C_COMPILER
     CXX_COMPILER
     SYSTEM_NAME
-    EXTERNAL_CORROSION_GENERATOR
+    CARGO_PROFILE
 )
-set(multiValueArgs "")
+set(multiValueArgs "PASS_THROUGH_ARGS")
 cmake_parse_arguments(TEST "${options}" "${oneValueArgs}"
                       "${multiValueArgs}" ${TEST_ARG_LIST} )
 
@@ -42,10 +42,8 @@ endif()
 if(TEST_SYSTEM_NAME)
     set(TEST_SYSTEM_NAME "-DCMAKE_SYSTEM_NAME=${TEST_SYSTEM_NAME}")
 endif()
-if(TEST_EXTERNAL_CORROSION_GENERATOR)
-    set(TEST_EXTERNAL_CORROSION_GENERATOR
-        "-DCORROSION_GENERATOR_EXECUTABLE=${TEST_EXTERNAL_CORROSION_GENERATOR}"
-    )
+if(TEST_CARGO_PROFILE)
+    set(TEST_CARGO_PROFILE "-DCARGO_PROFILE=${TEST_CARGO_PROFILE}")
 endif()
 
 # Remove old binary directory
@@ -60,13 +58,15 @@ execute_process(
         "${CMAKE_COMMAND}"
             "-G${TEST_GENERATOR}"
             "-DRust_TOOLCHAIN=${TEST_RUST_TOOLCHAIN}"
+            --log-level Debug
             ${TEST_Rust_CARGO_TARGET}
             ${TEST_CORROSION_INSTALL}
             ${TEST_GENERATOR_PLATFORM}
             ${TEST_C_COMPILER}
             ${TEST_CXX_COMPILER}
             ${TEST_SYSTEM_NAME}
-            ${TEST_EXTERNAL_CORROSION_GENERATOR}
+            ${TEST_CARGO_PROFILE}
+            ${TEST_PASS_THROUGH_ARGS}
             -S "${TEST_SOURCE_DIR}"
             -B "${TEST_BINARY_DIR}"
         COMMAND_ECHO STDOUT

@@ -1,3 +1,143 @@
+# Unreleased
+
+### Breaking Changes
+
+- The master branch of corrosion now requires CMake 3.22. See also the 
+  [v0.4.0 Release notes](#040-lts-2023-06-01) for more details.
+
+# v0.4.3 (2023-09-09)
+
+### Fixes
+
+- Fix the PROFILE option with CMake < 3.19 [#427]
+- Relax vendor parsing for espressif targets (removes warnings)
+- Fix an issue detecting required link libraries with Rust >= 1.71
+  when the cmake build directory is located in a Cargo workspace.
+
+# 0.4.2 (2023-07-16)
+
+### Fixes
+
+- Fix an issue when cross-compiling with clang
+- Fix detecting required libraries with cargo 1.71 
+
+### New features
+
+- Users can now set `Rust_RESOLVE_RUSTUP_TOOLCHAINS` to `OFF`, which will result in Corrosion
+  not attempting to resolve rustc/cargo.
+
+# 0.4.1 (2023-06-03)
+
+This is a bugfix release.
+
+### Fixes
+
+- Fixes a regression on multi-config Generators
+
+# 0.4.0 LTS (2023-06-01)
+
+No changes compared to v0.4.0-beta2.
+
+## Announcements
+
+The `v0.4.x` LTS series will be the last release to support older CMake and Rust versions.
+If necessary, fixes will be backported to the v0.4 branch. New features will not be
+actively backported after the next major release, but community contributions are possible.
+The `v0.4.x` series is currently planned to be maintained until the end of 2024.
+
+The following major release will increase the minimum required CMake version to 3.22. The 
+minimum supported Rust version will also be increased to make use of newly added flags, but 
+the exact version is not fixed yet. 
+
+
+## Changes compared to v0.3.5:
+
+### Breaking Changes
+
+- The Visual Studio Generators now require at least CMake 3.20.
+  This was previously announced in the 0.3.0 release notes and is the same
+  requirement as for the other Multi-Config Generators.
+- The previously deprecated function `corrosion_set_linker_language()`
+  will now raise an error when called and may be removed without further
+  notice in future stable releases. Use `corrosion_set_linker()` instead.
+- Improved the FindRust target triple detection, which may cause different behavior in some cases.
+  The detection does not require an enabled language anymore and will always fall back
+  to the default host target triple. A warning is issued if target triple detection failed.
+
+### Potentially Breaking Changes
+
+- Corrosion now sets the `IMPORTED_NO_SONAME` property for shared rust libraries, since by
+  default they won't have an `soname` field.
+  If you add a rustflag like `-Clink-arg=-Wl,-soname,libmycrate.so` in your project,
+  you should set this property to false on the shared rust library.
+- Corrosion now uses a mechanism to determine which native libraries need to be linked with
+  Rust `staticlib` targets into C/C++ targets. The previous mechanism contained a hardcoded list.
+  The new mechanism asks `rustc` which libraries are needed at minimum for a given
+  target triple (with `std` support). This should not be a breaking change, but if you
+  do encounter a new linking issue when upgrading with `staticlib` targets, please open an
+  issue.
+
+### New features
+
+- `corrosion_import_crate()` has two new options `LOCKED` and `FROZEN` which pass the 
+  `--locked` and `--frozen` flags to all invocations of cargo.
+- `FindRust` now provides cache variables containing information on the default host
+  target triple:
+  - `Rust_CARGO_HOST_ARCH`
+  - `Rust_CARGO_HOST_VENDOR`
+  - `Rust_CARGO_HOST_OS`
+  - `Rust_CARGO_HOST_ENV`
+
+### Other changes
+
+- When installing Corrosion with CMake >= 3.19, the legacy Generator tool is
+  no longer built and installed by default.
+- Corrosion now issues a warning when setting the linker or setting linker
+  options for a Rust static library.
+- Corrosion no longer enables the `C` language when CMake is in crosscompiling mode and
+  no languages where previously enabled. This is not considered a breaking change.
+- `corrosion_import_crate()` now warns about unexpected arguments.
+
+### Fixes
+
+- Fix building when the `dev` profile is explicitly set by the user.
+
+## Experimental features (may be changed or removed without a major version bump)
+
+- Experimental cxxbridge and cbindgen integration.
+- Add a helper function to parse the package version from a Cargo.toml file
+- Expose rustup toolchains discovered by `FindRust` in the following cache variables
+  which contain a list.
+  - `Rust_RUSTUP_TOOLCHAINS`: List of toolchains names
+  - `Rust_RUSTUP_TOOLCHAINS_VERSION`: List of `rustc` version of the toolchains
+  - `Rust_RUSTUP_TOOLCHAINS_RUSTC_PATH`: List of the path to `rustc`
+  - `Rust_RUSTUP_TOOLCHAINS_CARGO_PATH`: List of the path to `cargo`. Entries may be `NOTFOUND` if cargo
+    is not available for that toolchain.
+- Add target properties `INTERFACE_CORROSION_RUSTC` and `INTERFACE_CORROSION_CARGO`, which may
+  be set to paths to `rustc` and `cargo` respectively to override the toolchain for a specific
+  target.
+
+# 0.3.5 (2023-03-19)
+
+- Fix building the Legacy Generator on Rust toolchains < 1.56 ([#365])
+
+[#365]: https://github.com/corrosion-rs/corrosion/pull/365
+
+# 0.3.4 (2023-03-02)
+
+## Fixes
+
+- Fix hostbuild (when CMake/Cargo is configured for cross-compiling) if clang is used ([#338]).
+
+## Other
+
+- Pass `--no-deps` to cargo metadata ([#334]).
+- Bump the legacy generator dependencies
+
+[#334]: https://github.com/corrosion-rs/corrosion/pull/334
+[#338]: https://github.com/corrosion-rs/corrosion/pull/338
+
+
 # 0.3.3 (2023-02-17)
 
 ## New features (Only available on CMake >= 3.19)

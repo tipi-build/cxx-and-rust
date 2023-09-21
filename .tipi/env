@@ -1,0 +1,4 @@
+TIPI_CACHE_FORCE_ENABLE=ON
+TIPI_DISTRO_JSON=https://raw.githubusercontent.com/tipi-build/distro/40b9d67c1bbbda7949b489301ea0bddfcacf554f/distro.json
+TIPI_DISTRO_JSON_SHA1=dc740cb079b11a3fd809a7157c3b8d19ab23dcc2
+UBSAN_OPTIONS=print_stacktrace=1

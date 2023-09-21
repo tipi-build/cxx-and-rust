@@ -1,7 +1,3 @@
-if(CMAKE_VERSION VERSION_LESS 3.19.0)
-    return()
-endif()
-
 if(CMAKE_C_COMPILER)
     set(TEST_C_COMPILER "C_COMPILER" "${CMAKE_C_COMPILER}")
 endif()
@@ -135,3 +131,6 @@ add_test(NAME postbuild_custom_command
     "${CMAKE_CURRENT_BINARY_DIR}/build/another_dir/moved_bin"
     )
 set_tests_properties("postbuild_custom_command" PROPERTIES FIXTURES_REQUIRED "build_fixture_output_directory")
+
+add_test(NAME "output_directory_cleanup" COMMAND "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/build")
+set_tests_properties("output_directory_cleanup" PROPERTIES FIXTURES_CLEANUP "build_fixture_output_directory")

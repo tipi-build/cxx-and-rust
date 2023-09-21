@@ -1,5 +1,14 @@
-cmake_minimum_required(VERSION 3.15)
-project(Corrosion VERSION 0.3.3 LANGUAGES NONE)
+cmake_minimum_required(VERSION 3.21)
+project(Corrosion
+    # Official releases will be major.minor.patch. When the `tweak` field is
+    # set it indicates that we are on a commit, that is not a officially
+    # tagged release. Users don't need to care about this, it is mainly to
+    # clearly see in configure logs which version was used, without needing to
+    # rely on `git`, since Corrosion may be installed or otherwise packaged.
+    VERSION 0.4.99.99 # a 0.5-pre-release
+    LANGUAGES NONE
+    HOMEPAGE_URL "https://corrosion-rs.github.io/corrosion/"
+)
 
 # Default behavior:
 # - If the project is being used as a subdirectory, then don't build tests and
@@ -14,12 +23,6 @@ endif()
 # ==== Corrosion Configuration ====
 
 option(
-    CORROSION_DEV_MODE
-    "Enables some additional features if you're developing Corrosion"
-    ${_CORROSION_TOP_LEVEL}
-)
-
-option(
     CORROSION_BUILD_TESTS
     "Build Corrosion test project"
     ${_CORROSION_TOP_LEVEL}
@@ -30,24 +33,6 @@ set(
   "Use prebuilt, non-bootstrapped corrosion-generator")
 mark_as_advanced(CORROSION_GENERATOR_EXECUTABLE)
 
-if (CORROSION_GENERATOR_EXECUTABLE)
-    add_executable(Corrosion::Generator IMPORTED GLOBAL)
-    set_property(
-        TARGET Corrosion::Generator
-        PROPERTY IMPORTED_LOCATION ${CORROSION_GENERATOR_EXECUTABLE})
-    set(CORROSION_INSTALL_EXECUTABLE_DEFAULT OFF)
-# If corrosion is used as a subdirectory, the CMake version is recent enough and the option is not
-# explicitly disabled, then we do not need to build the Rust based parser and use the CMake based
-# parser instead.
-elseif((NOT _CORROSION_TOP_LEVEL)
-        AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.19.0
-        AND NOT CORROSION_NATIVE_TOOLING
-        )
-    set(CORROSION_INSTALL_EXECUTABLE_DEFAULT OFF)
-else()
-    set(CORROSION_INSTALL_EXECUTABLE_DEFAULT ON)
-endif()
-
 option(
     CORROSION_INSTALL_EXECUTABLE
     "Controls whether corrosion-generator is installed with the package"
@@ -55,11 +40,15 @@ option(
 )
 mark_as_advanced(CORROSION_INSTALL_EXECUTABLE)
 
+if (CORROSION_GENERATOR_EXECUTABLE OR CORROSION_INSTALL_EXECUTABLE)
+    message(FATAL_ERROR "The Cache variables CORROSION_GENERATOR_EXECUTABLE CORROSION_INSTALL_EXECUTABLE"
+            " were removed.")
+endif()
+
 if (_CORROSION_TOP_LEVEL)
-    # TODO: If we don't have a language enabled, corrosion_import_crate will
-    # attempt to enable a C compiler. Ideally, we could delay this somehow until
-    # after we've set link libraries.
-    enable_language(CXX)
+    # We need to enable a language for corrosions test to work.
+    # For projects using corrosion this is not needed
+    enable_language(C)
 endif()
 
 # This little bit self-hosts the Corrosion toolchain to build the generator
@@ -84,22 +73,6 @@ endif()
 # Installation
 
 include(GNUInstallDirs)
-
-if(CORROSION_INSTALL_EXECUTABLE)
-    # Builds the generator executable
-    corrosion_import_crate(MANIFEST_PATH generator/Cargo.toml)
-
-    set(_CORROSION_GENERATOR_DESTINATION "${CMAKE_INSTALL_FULL_LIBEXECDIR}")
-
-    corrosion_install(
-        TARGETS corrosion-generator
-        DESTINATION "${_CORROSION_GENERATOR_DESTINATION}"
-    )
-else()
-    message(DEBUG "Not installing corrosion-generator since "
-        "`CORROSION_INSTALL_EXECUTABLE` is set to ${CORROSION_INSTALL_EXECUTABLE}"
-    )
-endif()
 
 # Generate the Config file
 include(CMakePackageConfigHelpers)
